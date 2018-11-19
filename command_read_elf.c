@@ -18,7 +18,7 @@ int main(int argc , char **argv)
 {
 	Elf32_Ehdr Elf_header;
 	Elf32_Shdr *Shdr = NULL;
-	int fd;
+	int fd;			// file descriptor to read the binary/executable/linkable file
 	if(argc < 1)
 	{
 		puts("execution format : ./a.out binary/elf_file");
@@ -47,6 +47,7 @@ int main(int argc , char **argv)
 	printf("Magic :			%x %x %x %x\n",Elf_header.e_ident[EI_MAG0],Elf_header.e_ident[EI_MAG1],
 							Elf_header.e_ident[EI_MAG2],Elf_header.e_ident[EI_MAG3]);
 	printf("Class :			%d\n",Elf_header.e_ident[EI_CLASS]);
+	printf("Data :			");
 	switch(Elf_header.e_ident[EI_DATA])
 	{
 		case ELFDATANONE : puts("Invalid data Encodeing"); break;
@@ -111,9 +112,99 @@ int main(int argc , char **argv)
 	printf("Total No of section headers			:  %u\n",Elf_header.e_shnum);
 	printf("Section Header string table index		:  %u\n",Elf_header.e_shstrndx);
 
+	puts("\n**********************************");
+	printf("printing the program header details\n");
+
+	Elf32_Phdr *Phdr = NULL;
+	Phdr = (Elf32_Phdr *)malloc(sizeof(Elf32_Phdr)*Elf_header.e_phnum);
+//	printf("lseek of Phdr : %ld \n",lseek(fd,Elf_header.e_phoff,SEEK_SET) );
+	lseek(fd,Elf_header.e_phoff,SEEK_SET);
+	if(read(fd,Phdr,sizeof(*Phdr)*Elf_header.e_phnum) != sizeof(*Phdr)*Elf_header.e_phnum )
+	{ 
+		perror("read ");
+		return -1;
+	}
+
+#if 0
+	int i;
+	for(i=0 ; i< Elf_header.e_phnum ;i++)
+	{
+		printf("p_type = 			%u \n",Phdr[i].p_type);
+		switch(Phdr[i].p_type)
+		{
+			case PT_NULL 	:puts("Program header have ignored entries");break;
+			case PT_LOAD 	:puts("Its a lodable segment");break;
+			case PT_DYNAMIC :puts("Specifies Dynamic Linking Info");break;
+			case PT_INTERP 	:puts("specifies location and size of null terminated path");break;
+			case PT_NOTE	:puts("Location and size of auxillary information");break;	
+			case PT_SHLIB	:puts("Segment type is reserved");
+			case PT_PHDR	:puts("Location and size of program header table itself");break;
+			//case PT_LOOS	:
+			//case PT_HIOS	:
+			//case PT_LOPROC 	:
+			//case PT_HIPROC 	:
+			default : puts("Invalid p_type");break;
+		}
+
+		printf("p_offset of one segment = 	0x%lx \n",Phdr[i].p_offset);
+		printf("p_vaddr of segment	=	0x%lx \n",Phdr[i].p_vaddr);
+		printf("segment size =			0x%lx \n",Phdr[i].p_filesz);
+	
+	}
+
+#endif
+	int i;
+	printf("  Type\t\tOffset\t\tVirtAddr\t\tFlags\n");
+	for(i=0 ; i< Elf_header.e_phnum ;i++)
+	{
+		//printf("p_type = 			%u \n",Phdr[i].p_type);
+		switch(Phdr[i].p_type)
+		{	
+			#if 0
+			case PT_NULL 	:printf("Program header have ignored entries");break;
+			case PT_LOAD 	:printf("Its a lodable segment");break;
+			case PT_DYNAMIC :printf("Specifies Dynamic Linking Info");break;
+			case PT_INTERP 	:printf("specifies location and size of null terminated path");break;
+			case PT_NOTE	:printf("Location and size of auxillary information");break;	
+			case PT_SHLIB	:printf("Segment type is reserved");break;
+			case PT_PHDR	:printf("Location and size of program header table itself");break;
+			//case PT_LOOS	:
+			//case PT_HIOS	:
+			//case PT_LOPROC 	:
+			//case PT_HIPROC 	:
+			#endif
+			case PT_NULL 	:printf("  NULL\t");break;
+			case PT_LOAD 	:printf("  LOAD\t");break;
+			case PT_DYNAMIC :printf("  DYNAMIC");break;
+			case PT_INTERP 	:printf("  INTERP");break;
+			case PT_NOTE	:printf("  NOTE\t");break;	
+			case PT_SHLIB	:printf("  SHLIB\t");break;
+			case PT_PHDR	:printf("  PHDR\t");break;
+			default : printf("  INV\t");break;
+		}
+
+		printf("\t0x%lx\t",Phdr[i].p_offset);
+		printf("\t0x%lx\t",Phdr[i].p_vaddr);
+
+		switch(Phdr[i].p_flags)
+		{
+			case 1:printf("E");break;
+			case 2:printf("W");break;
+			case 3:printf("W E");break;
+			case 4:printf("R");break;
+			case 5:printf("R E");break;
+			case 6:printf("R W");break;
+			case 7:printf("R W E");break;
+		}
+		puts("");
+		//printf("segment size =			0x%lx\t",Phdr[i].p_filesz);
+	
+	}
+
 // shifting fd to section header offset address
 
-	printf("offset : %ld\n",lseek(fd,64,SEEK_SET) );
+//	printf("offset : %ld\n",lseek(fd,64,SEEK_SET) );
+	lseek(fd,64,SEEK_SET);
 	if(lseek(fd,Elf_header.e_shoff,SEEK_SET) != Elf_header.e_shoff)
 	{
 		perror("lseek ");
@@ -132,25 +223,9 @@ int main(int argc , char **argv)
 		return -1;
 	}
 
-	printf("index loc in string table 	:%lu\n",Shdr->sh_name);
-	printf("first section offset address	:%llu\n",Shdr->sh_offset);
-	printf("section  size			:%llu\n",Shdr->sh_size);
-
-puts("**********************************");
-printf("printing the program header details\n");
-
-Elf32_Phdr Phdr;
-
-printf("lseek of Phdr : %ld \n",lseek(fd,Elf_header.e_phoff,SEEK_SET) );
-
-read(fd,&Phdr,sizeof(Phdr));
-
-printf("p_type = 			%u \n",Phdr.p_type);
-printf("p_offset of one segment = 	%lu \n",Phdr.p_offset);
-printf("p_vaddr of segment	=	%lu \n",Phdr.p_vaddr);
-printf("segment size =			%lu \n",Phdr.p_filesz);
-
-
+	printf("index loc in string table 	:%u\n",Shdr->sh_name);
+	printf("first section offset address	:%lu\n",Shdr->sh_offset);
+	printf("section  size			:%lu\n",Shdr->sh_size);
 
 	return 0;
 }
