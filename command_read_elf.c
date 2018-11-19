@@ -31,6 +31,8 @@ int main(int argc , char **argv)
 		perror("open ");
 		return -1;
 	}
+
+	printf("size of ELF structure is : %lu \n",sizeof(Elf32_Ehdr));
 	
 	//reding the binary file
 	if(read(fd,&Elf_header,sizeof(Elf32_Ehdr)) != sizeof(Elf32_Ehdr) )
@@ -39,21 +41,19 @@ int main(int argc , char **argv)
 		return -1;
 	}
 
+	lseek(fd,0,SEEK_SET);
+
 	printf("%s :\n",__FILE__);	
-#if 0
-	switch(Elf_header.e_type)
-	{
-		case ET_NONE : puts("No file type"); break;
-		case ET_REL  : puts("Relocatable file");break;
-		case ET_EXEC : puts("Executable file");break;
-		case ET_DYN  : puts("Shared Object File");break;
-		case ET_CORE : puts("Core File");break;
-		default : puts("unknown value"); break;
-	}
-#endif
 	printf("Magic :			%x %x %x %x\n",Elf_header.e_ident[EI_MAG0],Elf_header.e_ident[EI_MAG1],
 							Elf_header.e_ident[EI_MAG2],Elf_header.e_ident[EI_MAG3]);
 	printf("Class :			%d\n",Elf_header.e_ident[EI_CLASS]);
+	switch(Elf_header.e_ident[EI_DATA])
+	{
+		case ELFDATANONE : puts("Invalid data Encodeing"); break;
+		case ELFDATA2LSB  : puts("Little Endian"); break;
+		case ELFDATA2MSB  : puts("Big Endian"); break;
+	}
+
 	printf("Version :		%d\n",Elf_header.e_ident[EI_VERSION]);
 	switch(Elf_header.e_ident[EI_OSABI])
 	{
@@ -65,12 +65,19 @@ int main(int argc , char **argv)
 		case 6 :printf("ABI : 			Solaris\n");break;
 		case 12:printf("ABI : 			Open-BSD\n");break;
 		case 9 :printf("ABI : 			Free BSD\n");break;
+		default :puts("printing the default case WARNING");break;
 	}
-	unsigned long int addr;
-	lseek(fd,24,SEEK_SET);
-	read(fd,&addr,sizeof(addr));
-	printf("Entry point Address	%lx\n",addr);
-	printf("Entry point Address 	%lx\n",Elf_header.e_entry);
+	printf("Type :			");
+	switch(Elf_header.e_type)
+	{
+		case ET_NONE : puts("No file type"); break;
+		case ET_REL  : puts("Relocatable file");break;
+		case ET_EXEC : puts("Executable file");break;
+		case ET_DYN  : puts("Shared Object File");break;
+		case ET_CORE : puts("Core File");break;
+		default : puts("unknown value"); break;
+	}
+
 	printf("Machine :		");	
 	switch(Elf_header.e_machine)
 	{
@@ -84,32 +91,30 @@ int main(int argc , char **argv)
 		case 40 : puts("ARM");break;
 		case 50 : puts("IA-64");break;
 		case 62 : puts("x86-64");break;
-		//default : puts("Invalid input is given:-");break;
+		default : puts("Invalid input is given:-");break;
 	}
 
-	printf("Data Encoding		");
-	switch(Elf_header.e_ident[EI_DATA])
-	{
-		case ELFDATANONE : puts("Invalid data Encodeing"); break;
-		case ELFDATA2LSB  : puts("Little Endian"); break;
-		case ELFDATA2MSB  : puts("Big Endian"); break;
-	}
+#if 0
+	unsigned long long int addr;
+	lseek(fd,24,SEEK_SET);
+	read(fd,&addr,sizeof(addr));
+	printf("Entry point Address	0x%llx\n",addr);
+#endif
 
-//	printf("Entry point address 			 	:  %u\n",Elf_header.e_type);
-//	printf("program headers table offset address 		:  %x\n",Elf_header.e_phoff);
-//	printf("section header table offset address  		:  %x\n",Elf_header.e_shoff);
+	printf("Entry point Address 	0x%llx\n",Elf_header.e_entry); // this givs the offset address of the value present
 	printf("program headers table offset address 		:  %llu\n",Elf_header.e_phoff);
 	printf("section header table offset address  		:  %llu\n",Elf_header.e_shoff);
 	printf("ELF Header size in bytes /this header size	:  %u\n",Elf_header.e_ehsize);
-	printf("size of  program header				:  %hd\n",Elf_header.e_phentsize);
-	printf("Total no of program headers			:  %hd\n",Elf_header.e_phnum);
-	printf("Total No of section headers			:  %hd\n",Elf_header.e_shnum);
+	printf("size of  program headers			:  %u\n",Elf_header.e_phentsize);
+	printf("Number of program headers			:  %u\n",Elf_header.e_phnum);
+	printf("Size of section headers 			:  %u\n",Elf_header.e_shentsize);
+	printf("Total No of section headers			:  %u\n",Elf_header.e_shnum);
+	printf("Section Header string table index		:  %u\n",Elf_header.e_shstrndx);
 
 // shifting fd to section header offset address
 
-
 	printf("offset : %ld\n",lseek(fd,64,SEEK_SET) );
-	if(lseek(fd,Elf_header.e_shoff,SEEK_SET))
+	if(lseek(fd,Elf_header.e_shoff,SEEK_SET) != Elf_header.e_shoff)
 	{
 		perror("lseek ");
 		return -1;
@@ -140,10 +145,10 @@ printf("lseek of Phdr : %ld \n",lseek(fd,Elf_header.e_phoff,SEEK_SET) );
 
 read(fd,&Phdr,sizeof(Phdr));
 
-printf("p_type = 			%llu \n",Phdr.p_type);
-printf("p_offset of one segment = 	%llu \n",Phdr.p_offset);
+printf("p_type = 			%u \n",Phdr.p_type);
+printf("p_offset of one segment = 	%lu \n",Phdr.p_offset);
 printf("p_vaddr of segment	=	%lu \n",Phdr.p_vaddr);
-printf("segment size =			%llu \n",Phdr.p_filesz);
+printf("segment size =			%lu \n",Phdr.p_filesz);
 
 
 
