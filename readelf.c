@@ -1,6 +1,5 @@
 #include"elf_header.h"
 #include"section_header.h"
-//#include"symbol_table_header.h"
 #include"program_header.h"
 
 #include<stdio.h>
@@ -21,7 +20,7 @@ int main(int argc , char **argv)
 
 	if(argc < 1)
 	{
-		puts("execution format : ./a.out binary/elf_file");
+		puts("execution format : ./a.out --format binary/elf_file");
 		return -1;
 	}
 
@@ -116,9 +115,9 @@ int main(int argc , char **argv)
 		return -1;
 	}
 
-	printf("Program Headers:\n");
+	printf("\nProgram Headers:\n");
 	int i;
-	printf("  Type\t\tOffset\t\tVirtAddr\t\tFlags\n");
+	printf("  Type\t\tOffset\t\tVirtAddr\tFlags\n");
 	for(i=0 ; i< Elf_header.e_phnum ;i++)
 	{
 		switch(Phdr[i].p_type)
@@ -138,7 +137,10 @@ int main(int argc , char **argv)
 
 		printf("\t0x%lx\t",Phdr[i].p_offset);
 		printf("\t0x%lx\t",Phdr[i].p_vaddr);
-
+		if(!Phdr[i].p_vaddr)
+		{
+			printf("\t");
+		}
 		switch(Phdr[i].p_flags)
 		{
 			case 1:printf("E");break;
@@ -217,27 +219,23 @@ int main(int argc , char **argv)
 		printf("0x%lx\t",Shdr[i].sh_offset);
 		printf("  0x%lx\t",Shdr[i].sh_size);
 		printf("  %-3lu\t",Shdr[i].sh_entsize);	
-	printf("  ");
-	switch(Shdr[i].sh_flags)
-	{
-		case 1:printf("W");break;
-		case 2:printf("A");break;
-		case 3:printf("WA");break;
-		case 4:printf("X");break;
-		case 6:printf("AX");break;
-		case 0x10:printf("M");break;
-		case 0x20:printf("S");break;
-		case 0x30:printf("MS");break;
-		case 0x40:printf("I");break;
-		case 0x42:printf("AI");break;
+		printf("  ");
+		switch(Shdr[i].sh_flags)
+		{
+			case 1:printf("W");break;
+			case 2:printf("A");break;
+			case 3:printf("WA");break;
+			case 4:printf("X");break;
+			case 6:printf("AX");break;
+			case 0x10:printf("M");break;
+			case 0x20:printf("S");break;
+			case 0x30:printf("MS");break;
+			case 0x40:printf("I");break;
+			case 0x42:printf("AI");break;
 		//default : printf("%lu",Shdr[i].sh_flags);break;
-	}
+		}
 		printf("\t");
 		printf("  %u\n",Shdr[i].sh_link);
-	//	printf("section  size			:%lu\n",Shdr[i].sh_size);
-			
-//		free(p);
-	puts("");	
 	}
 	return 0;
 }
