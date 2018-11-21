@@ -1,8 +1,6 @@
 #ifndef __SEGMENT_HEADER__
 #define __SEGMENT_HEADER__
 
-#include"datatypes.h"
-
 //sh_type
 #define SHT_NULL 	0
 #define SHT_PROGBITS 	1

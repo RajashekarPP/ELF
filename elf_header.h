@@ -1,8 +1,6 @@
 #ifndef __ELF_HEADER__
 #define __ELF_HEADER__
 
-#include"datatypes.h"
-
 // for e_type
 #define ET_NONE		0
 #define ET_REL 		1  	//Relocatable file

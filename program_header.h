@@ -1,8 +1,6 @@
 #ifndef __PROGRAM_HEADER__
 #define __PROGRAM_HEADER__
 
-#include"datatypes.h"
-
 //p_type
 #define PT_NULL 	0
 #define PT_LOAD 	1
