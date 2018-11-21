@@ -30,14 +30,15 @@
 
 //for e_ident[]
 
-#define E_MAG0 		0	//File identification
-#define E_MAG1 		1	//File identification
-#define E_MAG2 		2	//File identification
-#define E_MAG3 		3	//File identification
+#define EI_MAG0 	0	//File identification
+#define EI_MAG1 	1	//File identification
+#define EI_MAG2 	2	//File identification
+#define EI_MAG3 	3	//File identification
 #define EI_CLASS	4	//File Class
 #define EI_DATA		5	//Data Encoding
 #define EI_VERSION	6	//File Version
-#define EI_PAD		7	//start of padding bytes
+#define EI_OSABI	7	//type of os platform
+#define EI_PAD		9	//start of padding bytes
 #define EI_NIDENT 	16	//size of e_ident[]
 
 #define ELFMAG0		0x7f
@@ -53,25 +54,50 @@
 #define ELFDATA2LSB	1	
 #define ELFDATA2MSB	2
 
+#if 0
+typedef struct {
+
+	unsigned char	e_ident[EI_NIDENT]; 	// 16
+	Elf32_Half	e_type;			// 2
+	Elf32_Half	e_machine;		// 2
+	Elf32_Word	e_version;		// 4
+	Elf32_Addr	e_entry;		// 8
+	Elf32_Off	e_phoff;		// 8
+	Elf32_Off	e_shoff;		// 8
+	Elf32_Sword	e_flags;		// 4	
+	Elf32_Half	e_ehsize;		// 2
+	Elf32_Half	e_phentsize;		// 2
+	Elf32_Half	e_phnum;		// 2 
+	Elf32_Half	e_shentsize;		// 2
+	Elf32_Half	e_shnum;		// 2
+	Elf32_Half	e_shstrndx;		// 2
+
+}Elf32_Ehdr;
+
+#endif
+
 
 typedef struct {
 
-	unsigned char	e_ident[EI_NIDENT];
-	Elf32_Half	e_type;
-	Elf32_Half	e_machine;
-	Elf32_Word	e_version;
-	Elf32_Addr	e_entry;
-	Elf32_Off	e_phoff;
-	Elf32_Off	e_shoff;
-	Elf32_Word	e_flags;
-	Elf32_Half	e_ehsize;
-	Elf32_Half	e_phentsize;
-	Elf32_Half	e_phnum;
-	Elf32_Half	e_shentsize;
-	Elf32_Half	e_shnum;
-	Elf32_Half	e_shstrndx;
+	unsigned char	e_ident[EI_NIDENT]; 	// 16
+	unsigned short	e_type;			// 2
+	unsigned short	e_machine;		// 2
+	unsigned int	e_version;		// 4
+	unsigned long long int  e_entry;	// 8
+	unsigned long long int	e_phoff;	// 8
+	unsigned long long int 	e_shoff;	// 8
+	unsigned int	e_flags;		// 4	
+	unsigned short	e_ehsize;		// 2
+	unsigned short	e_phentsize;		// 2
+	unsigned short	e_phnum;		// 2 
+	unsigned short	e_shentsize;		// 2
+	unsigned short	e_shnum;		// 2
+	unsigned short	e_shstrndx;		// 2
 
 }Elf32_Ehdr;
+
+
+
 
 
 #endif

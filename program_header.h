@@ -18,14 +18,14 @@
 
 typedef struct{
 
-	Elf32_Word	p_type;
-	Elf32_Off	p_offset;
-	Elf32_Addr	p_vaddr;
-	Elf32_Addr	p_paddr;
-	Elf32_Word	p_filesz;
-	Elf32_Word	p_memsz;
-	Elf32_Word	p_flags;
-	Elf32_Word	p_align;
+	unsigned int	p_type;     	// 4
+	signed int	p_flags;	// 4
+	unsigned long	p_offset;	// 8
+	unsigned long	p_vaddr;	// 8
+	unsigned long	p_paddr;	// 8
+	unsigned long	p_filesz;	// 8
+	unsigned long	p_memsz;	// 8
+	unsigned long	p_align;	// 8
 
 }Elf32_Phdr;
 
