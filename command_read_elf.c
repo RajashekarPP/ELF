@@ -19,6 +19,8 @@ int main(int argc , char **argv)
 	Elf32_Ehdr Elf_header;
 	Elf32_Shdr *Shdr = NULL;
 	int fd;			// file descriptor to read the binary/executable/linkable file
+	unsigned short int index_str_t=0;
+
 	if(argc < 1)
 	{
 		puts("execution format : ./a.out binary/elf_file");
@@ -44,6 +46,7 @@ int main(int argc , char **argv)
 	lseek(fd,0,SEEK_SET);
 
 	printf("%s :\n",__FILE__);	
+	printf("ELF Header:\n");
 	printf("Magic :			%x %x %x %x\n",Elf_header.e_ident[EI_MAG0],Elf_header.e_ident[EI_MAG1],
 							Elf_header.e_ident[EI_MAG2],Elf_header.e_ident[EI_MAG3]);
 	printf("Class :			%d\n",Elf_header.e_ident[EI_CLASS]);
@@ -111,7 +114,10 @@ int main(int argc , char **argv)
 	printf("Size of section headers 			:  %u\n",Elf_header.e_shentsize);
 	printf("Total No of section headers			:  %u\n",Elf_header.e_shnum);
 	printf("Section Header string table index		:  %u\n",Elf_header.e_shstrndx);
+	
+	index_str_t = Elf_header.e_shstrndx;
 
+	printf("*** index_str_t = %u\n",index_str_t);
 	puts("\n**********************************");
 	printf("printing the program header details\n");
 
@@ -153,6 +159,7 @@ int main(int argc , char **argv)
 	}
 
 #endif
+printf("Program Headers:\n");
 	int i;
 	printf("  Type\t\tOffset\t\tVirtAddr\t\tFlags\n");
 	for(i=0 ; i< Elf_header.e_phnum ;i++)
@@ -180,6 +187,9 @@ int main(int argc , char **argv)
 			case PT_NOTE	:printf("  NOTE\t");break;	
 			case PT_SHLIB	:printf("  SHLIB\t");break;
 			case PT_PHDR	:printf("  PHDR\t");break;
+			case 1685382480 :printf(" GNU_EH_FRAME");break;
+			case 1685382481 :printf(" GNU_STACK");break;
+			case 1685382482 :printf(" GNU_RELRO");break;
 			default : printf("  INV\t");break;
 		}
 
@@ -204,28 +214,116 @@ int main(int argc , char **argv)
 // shifting fd to section header offset address
 
 //	printf("offset : %ld\n",lseek(fd,64,SEEK_SET) );
-	lseek(fd,64,SEEK_SET);
+
+//	lseek(fd,Elf_header.e_shoff,SEEK_SET);
+
+	puts("");
+	printf("Section Headers:\n");
 	if(lseek(fd,Elf_header.e_shoff,SEEK_SET) != Elf_header.e_shoff)
 	{
 		perror("lseek ");
 		return -1;
 	}
 
-	Shdr = (Elf32_Shdr *)malloc(sizeof(Elf32_Shdr));
+	Shdr = (Elf32_Shdr *)malloc(sizeof(Elf32_Shdr)*Elf_header.e_shnum);
+
 	if(Shdr == NULL)
 	{
 		perror("malloc ");
 		return -1;
 	}
-	if(read(fd,Shdr,sizeof(Elf32_Shdr)) != sizeof(Elf32_Shdr) )
+
+	if(read(fd,Shdr,sizeof(Elf32_Shdr)*Elf_header.e_shnum) != sizeof(Elf32_Shdr)*Elf_header.e_shnum )
 	{
 		perror("read ");
 		return -1;
 	}
 
-	printf("index loc in string table 	:%u\n",Shdr->sh_name);
-	printf("first section offset address	:%lu\n",Shdr->sh_offset);
-	printf("section  size			:%lu\n",Shdr->sh_size);
+	printf("  Name\t\t\t\tType\t\tAddress\t\tOffset\t");
+	printf("  Size\tEntSize\tFlags\tLink\n\n");
 
+	for(i=0;i<Elf_header.e_shnum ;i++)
+	{
+		char p[100];
+		lseek(fd,Shdr[index_str_t].sh_offset,SEEK_SET);
+		lseek(fd,Shdr[i].sh_name,SEEK_CUR);
+		read(fd,p,100);
+		printf("%-20s",p);
+#if 0
+		char *p=NULL;
+	/*	p=(char *)&Shdr[index_str_t];
+		p = p+Shdr[i].sh_name;
+	
+		p = (char *)Shdr[index_str_t].sh_offset + Shdr[i].sh_name;
+	*/
+
+	unsigned long long int addr;
+	lseek(fd,Shdr[index_str_t].sh_offset,SEEK_SET);
+	if(read(fd,p,200) == -1)
+	{
+		perror("read ");
+		return -1;
+	}
+		p = p+Shdr[i].sh_name;
+		printf("  %s\t",p);
+
+#endif
+
+	//	printf("%s\t",Shdr[index_str_t]);
+		printf("  \t\t");
+		switch(Shdr[i].sh_type)
+		{	
+			case SHT_NULL 		: printf("NULL\t\t");break;
+			case SHT_PROGBITS	: printf("PROGBITS\t");break;
+			case SHT_SYMTAB 	: printf("SYMTAB\t\t");break;
+			case SHT_STRTAB		: printf("STRTAB\t\t");break;
+			case SHT_RELA 		: printf("RELA\t\t");break;
+			case SHT_HASH		: printf("GNU_HASH\t");break;
+			case SHT_DYNAMIC	: printf("DYNAMIC\t\t");break;
+			case SHT_NOTE		: printf("NOTE\t\t");break;
+			case SHT_NOBITS		: printf("NOBITS\t\t");break;
+			case SHT_REL		: printf("REL\t\t");break;
+			case SHT_SHLIB		: printf("SHLIB\t\t");break;
+			case SHT_DYNSYM		: printf("DYNSYM\t\t");break;
+			case SHT_INIT_ARRAY	: printf("INIT_ARRAY\t");break;
+			case SHT_FINI_ARRAY	: printf("FINI_ARRAY\t");break;
+			case SHT_PREINIT_ARRAY	: printf("PREINIT_ARRAY\t");break;
+			case SHT_GROUP		: printf("GROUP\t\t");break;
+			case SHT_SYMTAB_SHNDX	: printf("SYMTAB_SHNDX\t");break;
+			case SHT_NUM		: printf("NUM\t\t");break;
+			case SHT_LOOS		: printf("LOOS\t\t");break;
+			default 		: printf( "INV \t\t");break;
+		}
+
+		printf("0x%lx\t",Shdr[i].sh_addr);
+		if(!Shdr[i].sh_addr)
+		{
+			printf("\t");
+		}
+		printf("0x%lx\t",Shdr[i].sh_offset);
+		printf("  0x%lx\t",Shdr[i].sh_size);
+		printf("%3lu\t",Shdr[i].sh_entsize);	
+	
+	switch(Shdr[i].sh_flags)
+	{
+		case 1:printf("W");break;
+		case 2:printf("A");break;
+		case 3:printf("WA");break;
+		case 4:printf("X");break;
+		case 6:printf("AX");break;
+		case 0x10:printf("M");break;
+		case 0x20:printf("S");break;
+		case 0x30:printf("MS");break;
+		case 0x40:printf("I");break;
+		case 0x42:printf("AI");break;
+		//default : printf("%lu",Shdr[i].sh_flags);break;
+	}
+		printf("\t");
+		printf("%5u\n",Shdr[i].sh_link);
+	//	printf("section  size			:%lu\n",Shdr[i].sh_size);
+			
+//		free(p);
+	puts("");	
+	}
 	return 0;
 }
