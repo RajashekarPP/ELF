@@ -251,10 +251,8 @@ int main(int argc , char **argv)
 	//Variable to read the dynamic section structures	
 	Elf32_Dyn *D = NULL;
 
-//	printf("sizeof struct *** %u ***\n",sizeof(*D));
 	// this array of structures end with d_val == DT_NULL
-
-	printf("  Tag\tType\t\t\tName/Value\n");
+	printf(" Tag\t\t\tType\t\t\tName/Value\n");
 	while(1)
 	{		
 		D = (Elf32_Dyn *)malloc(sizeof(*D));
@@ -267,7 +265,7 @@ int main(int argc , char **argv)
 			perror("read ");return -1;	
 		}
 	//	printf("#### %ld ###\n",lseek(fd,0,SEEK_CUR));	
-		printf("0x%lx\t",D->d_tag);
+		printf("0x%-10lx\t\t",D->d_tag);
 		switch(D->d_tag)
 		{
 			case DT_NULL	:printf("NULL\t");puts("");return 0;
@@ -298,10 +296,10 @@ int main(int argc , char **argv)
 			case DT_INIT_ARRAYSZ:printf("INIIT_ARRAYSZ");printf("\t\t%u",D->d_un.d_val);break;
 			case DT_FINI_ARRAY:printf("FINI_ARRAY");printf("\t\t%llx",D->d_un.d_ptr);break;
 			case DT_FINI_ARRAYSZ:printf("FINI_ARRAYSZ");printf("\t\t%u",D->d_un.d_val);break;
-		//	case DT_GNU_HASH:printf("GNU_HASH");break;
-		//	case DT_VERNEED	:printf("VERNEED");break;
-		//	case DT_VERNEEDNUM:printf("VERNEEDUM");break;
-		//	case DT_VERSYM	:printf("VERSYM");break;
+			case 0x6ffffef5:printf("GNU_HASH");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case 0x6ffffffe	:printf("VERNEED");printf("\t\t\t%llx",D->d_un.d_ptr);break;
+			case 0x6fffffff:printf("VERNEEDUM");printf("\t\t%u",D->d_un.d_val);break;
+			case 0x6ffffff0	:printf("VERSYM");printf("\t\t\t%llx",D->d_un.d_ptr);break;
 		//	default :printf("0x%x",D->d_tag);break;
 
 		}

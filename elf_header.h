@@ -72,20 +72,20 @@ typedef struct {
 
 typedef struct {
 
-	unsigned char	e_ident[EI_NIDENT]; 	// 16
-	unsigned short	e_type;			// 2
-	unsigned short	e_machine;		// 2
-	unsigned int	e_version;		// 4
-	unsigned long long int  e_entry;	// 8
-	unsigned long long int	e_phoff;	// 8
-	unsigned long long int 	e_shoff;	// 8
-	unsigned int	e_flags;		// 4	
-	unsigned short	e_ehsize;		// 2
-	unsigned short	e_phentsize;		// 2
-	unsigned short	e_phnum;		// 2 
-	unsigned short	e_shentsize;		// 2
-	unsigned short	e_shnum;		// 2
-	unsigned short	e_shstrndx;		// 2
+	unsigned char		e_ident[EI_NIDENT]; 	// 16
+	unsigned short		e_type;			// 2
+	unsigned short		e_machine;		// 2
+	unsigned int		e_version;		// 4
+	unsigned long long int  e_entry;		// 8
+	unsigned long long int	e_phoff;		// 8
+	unsigned long long int 	e_shoff;		// 8
+	unsigned int		e_flags;		// 4	
+	unsigned short		e_ehsize;		// 2
+	unsigned short		e_phentsize;		// 2
+	unsigned short		e_phnum;		// 2 
+	unsigned short		e_shentsize;		// 2
+	unsigned short		e_shnum;		// 2
+	unsigned short		e_shstrndx;		// 2
 
 }Elf32_Ehdr;
 
