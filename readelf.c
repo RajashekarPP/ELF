@@ -1,7 +1,7 @@
 #include"elf_header.h"
 #include"section_header.h"
 #include"program_header.h"
-
+#include"dynamic_structure_header.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -44,10 +44,10 @@ int main(int argc , char **argv)
 
 	printf("%s :\n",__FILE__);	
 	printf("ELF Header:\n");
-	printf("Magic :			%x %x %x %x\n",Elf_header.e_ident[EI_MAG0],Elf_header.e_ident[EI_MAG1],
+	printf("Magic :\t\t\t\t\t\t%x %x %x %x\n",Elf_header.e_ident[EI_MAG0],Elf_header.e_ident[EI_MAG1],
 							Elf_header.e_ident[EI_MAG2],Elf_header.e_ident[EI_MAG3]);
-	printf("Class :			%d\n",Elf_header.e_ident[EI_CLASS]);
-	printf("Data :			");
+	printf("Class :\t\t\t\t\t\t%d\n",Elf_header.e_ident[EI_CLASS]);
+	printf("Data :\t\t\t\t\t\t");
 	switch(Elf_header.e_ident[EI_DATA])
 	{
 		case ELFDATANONE : puts("Invalid data Encodeing"); break;
@@ -55,20 +55,21 @@ int main(int argc , char **argv)
 		case ELFDATA2MSB  : puts("Big Endian"); break;
 	}
 
-	printf("Version :		%d\n",Elf_header.e_ident[EI_VERSION]);
+	printf("Version :\t\t\t\t\t%d\n",Elf_header.e_ident[EI_VERSION]);
 	switch(Elf_header.e_ident[EI_OSABI])
 	{
-		case 0 :printf("ABI : 			Unix System-V\n");break;
-		case 1 :printf("ABI : 			HP-UX\n");break;
-		case 2 :printf("ABI : 			NetBSD\n");break;
-		case 3 :printf("ABI : 			LINUX\n");break;
-		case 4 :printf("ABI : 			GNU Hurd\n");break;
-		case 6 :printf("ABI : 			Solaris\n");break;
-		case 12:printf("ABI : 			Open-BSD\n");break;
-		case 9 :printf("ABI : 			Free BSD\n");break;
+		case 0 :printf("ABI : 	\t\t\t\t\tUnix System-V\n");break;
+		case 1 :printf("ABI : 	\t\t\t\t\tHP-UX\n");break;
+		case 2 :printf("ABI : 	\t\t\t\t\tNetBSD\n");break;
+		case 3 :printf("ABI : 	\t\t\t\t\tLINUX\n");break;
+		case 4 :printf("ABI : 	\t\t\t\t\tGNU Hurd\n");break;
+		case 6 :printf("ABI : 	\t\t\t\t\tSolaris\n");break;
+		case 12:printf("ABI : 	\t\t\t\t\tOpen-BSD\n");break;
+		case 9 :printf("ABI : 	\t\t\t\t\tFree BSD\n");break;
 		default :puts("printing the default case WARNING");break;
 	}
-	printf("Type :			");
+
+	printf("Type :			\t\t\t");
 	switch(Elf_header.e_type)
 	{
 		case ET_NONE : puts("No file type"); break;
@@ -79,7 +80,7 @@ int main(int argc , char **argv)
 		default : puts("unknown value"); break;
 	}
 
-	printf("Machine :		");	
+	printf("Machine :		\t\t\t");	
 	switch(Elf_header.e_machine)
 	{
 		case EM_NONE : puts("No machine specific"); break;
@@ -94,7 +95,7 @@ int main(int argc , char **argv)
 		case 62 : puts("x86-64");break;
 		default : puts("Invalid input is given:-");break;
 	}
-	printf("Entry point Address 	0x%llx\n",Elf_header.e_entry); 	// this givs the offset address of the value present
+	printf("Entry point Address 	\t\t\t0x%llx\n",Elf_header.e_entry); 	// this givs the offset address of the value present
 	printf("program headers table offset address 		:  %llu\n",Elf_header.e_phoff);
 	printf("section header table offset address  		:  %llu\n",Elf_header.e_shoff);
 	printf("ELF Header size in bytes /this header size	:  %u\n",Elf_header.e_ehsize);
@@ -116,7 +117,7 @@ int main(int argc , char **argv)
 	}
 
 	printf("\nProgram Headers:\n");
-	int i;
+	int i,index_dynamic_section=0;
 	printf("  Type\t\tOffset\t\tVirtAddr\tFlags\n");
 	for(i=0 ; i< Elf_header.e_phnum ;i++)
 	{
@@ -182,8 +183,14 @@ int main(int argc , char **argv)
 	for(i=0;i<Elf_header.e_shnum ;i++)
 	{
 		char p[100];
-		lseek(fd,Shdr[index_str_t].sh_offset,SEEK_SET);
-		lseek(fd,Shdr[i].sh_name,SEEK_CUR);
+		if(lseek(fd,Shdr[index_str_t].sh_offset,SEEK_SET) != Shdr[index_str_t].sh_offset)
+		{
+			//perror("lseek ");return -1;
+		}
+		if(lseek(fd,Shdr[i].sh_name,SEEK_CUR) != Shdr[i].sh_name )
+		{
+			//perror("lseek ");return -1;
+		}
 		read(fd,p,100);
 		printf("%-20s",p);
 		//printf("  \t\t");
@@ -195,7 +202,7 @@ int main(int argc , char **argv)
 			case SHT_STRTAB		: printf("STRTAB\t\t");break;
 			case SHT_RELA 		: printf("RELA\t\t");break;
 			case SHT_HASH		: printf("GNU_HASH\t");break;
-			case SHT_DYNAMIC	: printf("DYNAMIC\t\t");break;
+			case SHT_DYNAMIC	: printf("DYNAMIC\t\t");index_dynamic_section=i;break;
 			case SHT_NOTE		: printf("NOTE\t\t");break;
 			case SHT_NOBITS		: printf("NOBITS\t\t");break;
 			case SHT_REL		: printf("REL\t\t");break;
@@ -236,6 +243,74 @@ int main(int argc , char **argv)
 		}
 		printf("\t");
 		printf("  %u\n",Shdr[i].sh_link);
+	}
+
+	puts("Printing the Dynamic Section details");	
+
+	if(lseek(fd,Shdr[index_dynamic_section].sh_offset,SEEK_SET) != Shdr[index_dynamic_section].sh_offset )
+	{
+		perror("lseek ");return -1;
+	}
+
+	//Variable to read the dynamic section structures	
+	Elf32_Dyn *D = NULL;
+	// this array of structures end with d_val == DT_NULL
+
+	printf("  Tag\tType\t\tName/Value\n");
+	while(1)
+	{		
+		D = (Elf32_Dyn *)malloc(sizeof(D));
+		if(D == NULL)
+		{
+			perror("malloc ");return -1;
+		}
+		if(read(fd,D,sizeof(D)) != sizeof(D) )		
+		{
+			perror("read ");return -1;	
+		}	
+		printf("0x%x\t",D->d_tag);
+		switch(D->d_tag)
+		{
+			case DT_NULL	:printf("NULL\t");puts("");return 0;
+			case DT_NEEDED	:printf("NEEDED\t");break;
+			case DT_PLTRELSZ:printf("PLTRELSZ");break;
+			case DT_PLTGOT	:printf("PLTGOT\t");break;
+			case DT_HASH	:printf("HASH\t");break;
+			case DT_STRTAB	:printf("STRTAB\t");break;
+			case DT_SYMTAB	:printf("SYMTAB\t");break;
+			case DT_RELA	:printf("RELA\t");break;
+			case DT_RELASZ	:printf("RELASZ\t");break;
+			case DT_RELAENT	:printf("RELAENT\t");break;
+			case DT_STRSZ	:printf("STRSZ\t");break;
+			case DT_SYMENT	:printf("SYMENT\t");break;
+			case DT_INIT	:printf("INIT\t");break;
+			case DT_FINI	:printf("FINI\t");break;
+			case DT_SONAME	:printf("SONAME\t");break;
+			case DT_RPATH	:printf("RPATH\t");break;
+			case DT_SYMBOLIC:printf("SYMBOLIC\t");break;
+			case DT_REL	:printf("REL\t");break;
+			case DT_RELSZ	:printf("RELSZ\t");break;
+			case DT_RELENT	:printf("RELENT\t");break;
+			case DT_PLTREL	:printf("PLTREL\t");break;
+			case DT_DEBUG	:printf("DEBUG\t");break;
+			case DT_TEXTREL	:printf("TEXTREL\t");break;
+			case DT_JMPREL	:printf("JMPREL\t");break;
+			case DT_INIT_ARRAY:printf("INIT_ARRAY");break;
+			case DT_INIT_ARRAYSZ:printf("INIIT_ARRAYSZ");break;
+			case DT_FINI_ARRAY:printf("FINI_ARRAY");break;
+			case DT_FINI_ARRAYSZ:printf("FINI_ARRAYSZ");break;
+		//	case DT_GNU_HASH:printf("GNU_HASH");break;
+		//	case DT_VERNEED	:printf("VERNEED");break;
+		//	case DT_VERNEEDNUM:printf("VERNEEDUM");break;
+		//	case DT_VERSYM	:printf("VERSYM");break;
+			//default :printf("0x%x",D->d_tag);break;
+		}
+
+//		printf("\t\t%x",D->d_un.d_val);
+		printf("\t\t%lx",D->d_un.d_ptr);
+		puts("");
+		lseek(fd,sizeof(D),SEEK_CUR);
+		free(D);
 	}
 	return 0;
 }

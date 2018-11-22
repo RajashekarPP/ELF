@@ -11,7 +11,6 @@
 #define ET_HIPROC  	0xffff  //Processor-specific
 
 //for e_machine
-
 #define EM_NONE 	0 	// No machine 
 #define EM_M32 		1 	// AT&T WE 32100 
 #define EM_SPARC 	2 	// SPARC
@@ -22,12 +21,10 @@
 #define EM_MIPS 	8 	// RS3000
 
 //e_version
-
 #define EV_NONE 	0 	//Invalid Version
 #define EV_CURRENT 	1	//Current Version
 
 //for e_ident[]
-
 #define EI_MAG0 	0	//File identification
 #define EI_MAG1 	1	//File identification
 #define EI_MAG2 	2	//File identification
@@ -71,9 +68,7 @@ typedef struct {
 	Elf32_Half	e_shstrndx;		// 2
 
 }Elf32_Ehdr;
-
 #endif
-
 
 typedef struct {
 
@@ -93,9 +88,5 @@ typedef struct {
 	unsigned short	e_shstrndx;		// 2
 
 }Elf32_Ehdr;
-
-
-
-
 
 #endif
