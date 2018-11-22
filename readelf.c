@@ -2,6 +2,8 @@
 #include"section_header.h"
 #include"program_header.h"
 #include"dynamic_structure_header.h"
+#include"symbol_table_header.h"
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -13,10 +15,10 @@
 
 int main(int argc , char **argv)
 {
-	Elf32_Ehdr Elf_header;
-	Elf32_Shdr *Shdr = NULL;
+	Elf64_Ehdr Elf_header;
+	Elf64_Shdr *Shdr = NULL;
 	int fd;			// file descriptor to read the binary/executable/linkable file
-	unsigned short int index_str_t=0;
+	unsigned short int index_str_t=0 , index_symbol_table=0 , offset=0;
 
 	if(argc < 1)
 	{
@@ -31,10 +33,10 @@ int main(int argc , char **argv)
 		return -1;
 	}
 
-	printf("size of ELF structure is : %lu \n",sizeof(Elf32_Ehdr));
+	printf("size of ELF structure is : %lu \n",sizeof(Elf64_Ehdr));
 	
 	//reding the binary file
-	if(read(fd,&Elf_header,sizeof(Elf32_Ehdr)) != sizeof(Elf32_Ehdr) )
+	if(read(fd,&Elf_header,sizeof(Elf64_Ehdr)) != sizeof(Elf64_Ehdr) )
 	{
 		perror("read ");
 		return -1;
@@ -107,8 +109,8 @@ int main(int argc , char **argv)
 	
 	index_str_t = Elf_header.e_shstrndx;
 
-	Elf32_Phdr *Phdr = NULL;
-	Phdr = (Elf32_Phdr *)malloc(sizeof(Elf32_Phdr)*Elf_header.e_phnum);
+	Elf64_Phdr *Phdr = NULL;
+	Phdr = (Elf64_Phdr *)malloc(sizeof(Elf64_Phdr)*Elf_header.e_phnum);
 	lseek(fd,Elf_header.e_phoff,SEEK_SET);
 	if(read(fd,Phdr,sizeof(*Phdr)*Elf_header.e_phnum) != sizeof(*Phdr)*Elf_header.e_phnum )
 	{ 
@@ -163,7 +165,7 @@ int main(int argc , char **argv)
 		return -1;
 	}
 
-	Shdr = (Elf32_Shdr *)malloc(sizeof(Elf32_Shdr)*Elf_header.e_shnum);
+	Shdr = (Elf64_Shdr *)malloc(sizeof(Elf64_Shdr)*Elf_header.e_shnum);
 
 	if(Shdr == NULL)
 	{
@@ -171,7 +173,7 @@ int main(int argc , char **argv)
 		return -1;
 	}
 
-	if(read(fd,Shdr,sizeof(Elf32_Shdr)*Elf_header.e_shnum) != sizeof(Elf32_Shdr)*Elf_header.e_shnum )
+	if(read(fd,Shdr,sizeof(Elf64_Shdr)*Elf_header.e_shnum) != sizeof(Elf64_Shdr)*Elf_header.e_shnum )
 	{
 		perror("read ");
 		return -1;
@@ -188,17 +190,19 @@ int main(int argc , char **argv)
 			perror("lseek ");return -1;
 		}
 		lseek(fd,Shdr[i].sh_name,SEEK_CUR);
+	//	printf("* %ld *",lseek(fd,0,SEEK_CUR));
 		read(fd,p,100);
 		printf("%-20s",p);
+		
 		switch(Shdr[i].sh_type)
 		{	
 			case SHT_NULL 		: printf("NULL\t\t");break;
 			case SHT_PROGBITS	: printf("PROGBITS\t\t");break;
-			case SHT_SYMTAB 	: printf("SYMTAB\t\t");break;
-			case SHT_STRTAB		: printf("STRTAB\t\t");break;
+			case SHT_SYMTAB 	: printf("SYMTAB\t\t"); index_symbol_table = i ;break;
+			case SHT_STRTAB		: printf("STRTAB\t\t");offset=Shdr[i].sh_offset; break; 
 			case SHT_RELA 		: printf("RELA\t\t");break;
 			case SHT_HASH		: printf("GNU_HASH\t");break;
-			case SHT_DYNAMIC	: printf("DYNAMIC\t\t");index_dynamic_section=i;break;
+			case SHT_DYNAMIC	: printf("DYNAMIC\t\t"); index_dynamic_section=i ;break;
 			case SHT_NOTE		: printf("NOTE\t\t");break;
 			case SHT_NOBITS		: printf("NOBITS\t\t");break;
 			case SHT_REL		: printf("REL\t\t");break;
@@ -249,13 +253,13 @@ int main(int argc , char **argv)
 	}
 
 	//Variable to read the dynamic section structures	
-	Elf32_Dyn *D = NULL;
-
+	Elf64_Dyn *D = NULL;
+		//printf("#### %ld ###\n",lseek(fd,0,SEEK_CUR));	
 	// this array of structures end with d_val == DT_NULL
 	printf(" Tag\t\t\tType\t\t\tName/Value\n");
 	while(1)
 	{		
-		D = (Elf32_Dyn *)malloc(sizeof(*D));
+		D = (Elf64_Dyn *)malloc(sizeof(*D));
 		if(D == NULL)
 		{
 			perror("malloc ");return -1;
@@ -268,39 +272,39 @@ int main(int argc , char **argv)
 		printf("0x%-10lx\t\t",D->d_tag);
 		switch(D->d_tag)
 		{
-			case DT_NULL	:printf("NULL\t");puts("");return 0;
-			case DT_NEEDED	:printf("NEEDED\t");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_PLTRELSZ:printf("PLTRELSZ");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_PLTGOT	:printf("PLTGOT\t");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case DT_HASH	:printf("HASH\t");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case DT_STRTAB	:printf("STRTAB\t");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case DT_SYMTAB	:printf("SYMTAB\t");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case DT_RELA	:printf("RELA\t");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case DT_RELASZ	:printf("RELASZ\t");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_RELAENT	:printf("RELAENT\t");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_STRSZ	:printf("STRSZ\t");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_SYMENT	:printf("SYMENT\t");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_INIT	:printf("INIT\t");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case DT_FINI	:printf("FINI\t");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case DT_SONAME	:printf("SONAME\t");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_RPATH	:printf("RPATH\t");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_SYMBOLIC:printf("SYMBOLIC\t");break;
-			case DT_REL	:printf("REL\t");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case DT_RELSZ	:printf("RELSZ\t");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_RELENT	:printf("RELENT\t");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_PLTREL	:printf("PLTREL\t");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_DEBUG	:printf("DEBUG\t");printf("\t\t0x%llx",D->d_un.d_ptr);break;
-			case DT_TEXTREL	:printf("TEXTREL\t");break;
-			case DT_JMPREL	:printf("JMPREL\t");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case DT_INIT_ARRAY:printf("INIT_ARRAY");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case DT_INIT_ARRAYSZ:printf("INIIT_ARRAYSZ");printf("\t\t%u",D->d_un.d_val);break;
-			case DT_FINI_ARRAY:printf("FINI_ARRAY");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case DT_FINI_ARRAYSZ:printf("FINI_ARRAYSZ");printf("\t\t%u",D->d_un.d_val);break;
-			case 0x6ffffef5:printf("GNU_HASH");printf("\t\t%llx",D->d_un.d_ptr);break;
-			case 0x6ffffffe	:printf("VERNEED");printf("\t\t\t%llx",D->d_un.d_ptr);break;
-			case 0x6fffffff:printf("VERNEEDUM");printf("\t\t%u",D->d_un.d_val);break;
-			case 0x6ffffff0	:printf("VERSYM");printf("\t\t\t%llx",D->d_un.d_ptr);break;
-		//	default :printf("0x%x",D->d_tag);break;
+			case DT_NULL		:printf("NULL\t");puts("");goto loop;
+			case DT_NEEDED		:printf("NEEDED\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_PLTRELSZ	:printf("PLTRELSZ");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_PLTGOT		:printf("PLTGOT\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_HASH		:printf("HASH\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_STRTAB		:printf("STRTAB\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_SYMTAB		:printf("SYMTAB\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_RELA		:printf("RELA\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_RELASZ		:printf("RELASZ\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_RELAENT		:printf("RELAENT\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_STRSZ		:printf("STRSZ\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_SYMENT		:printf("SYMENT\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_INIT		:printf("INIT\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_FINI		:printf("FINI\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_SONAME		:printf("SONAME\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_RPATH		:printf("RPATH\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_SYMBOLIC	:printf("SYMBOLIC\t");break;
+			case DT_REL		:printf("REL\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_RELSZ		:printf("RELSZ\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_RELENT		:printf("RELENT\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_PLTREL		:printf("PLTREL\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_DEBUG		:printf("DEBUG\t");printf("\t\t0x%llx",D->d_un.d_ptr);break;
+			case DT_TEXTREL		:printf("TEXTREL\t");break;
+			case DT_JMPREL		:printf("JMPREL\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_INIT_ARRAY	:printf("INIT_ARRAY");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_INIT_ARRAYSZ	:printf("INIIT_ARRAYSZ");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_FINI_ARRAY	:printf("FINI_ARRAY");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_FINI_ARRAYSZ	:printf("FINI_ARRAYSZ");printf("\t\t%u",D->d_un.d_val);break;
+			case 0x6ffffef5		:printf("GNU_HASH");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case 0x6ffffffe		:printf("VERNEED");printf("\t\t\t%llx",D->d_un.d_ptr);break;
+			case 0x6fffffff		:printf("VERNEEDUM");printf("\t\t%u",D->d_un.d_val);break;
+			case 0x6ffffff0		:printf("VERSYM");printf("\t\t\t%llx",D->d_un.d_ptr);break;
+		//	default 		:printf("0x%x",D->d_tag);break;
 
 		}
 	//	printf("\t\t%x",D->d_un.d_val);
@@ -309,5 +313,40 @@ int main(int argc , char **argv)
 		puts("");
 		free(D);
 	}
+
+loop :
+	printf("  **** %d %d\n",index_symbol_table,index_dynamic_section);
+	printf("printing symbol table \n");
+	if(lseek(fd,Shdr[index_symbol_table].sh_offset,SEEK_SET) != Shdr[index_symbol_table].sh_offset )
+	{
+		perror("lseek ");return -1;
+	}
+
+	Elf64_Sym *Sym_t = NULL;
+
+	//printf("offset = %d\n",offset);
+//	printf("** %ld **\n",lseek(fd,0,1));
+	//printf("%ld\n",lseek(fd,16568,0));
+//	printf("** %ld **\n",lseek(fd,19109,0));
+	for(i=0;i<10;i++)
+	{
+		Sym_t = (Elf64_Sym *)malloc(sizeof(*Sym_t));
+		if(Sym_t = NULL)
+		{
+			perror("malloc ");return -1;
+		}
+
+		if(read(fd,Sym_t,sizeof(Elf64_Sym)) != sizeof(Elf64_Sym))
+		{
+			perror("read ");return -1;
+		}
+		printf("info 	: %c\n",Sym_t->st_info);
+		printf("other	: %c\n",Sym_t->st_other);
+		printf("value	: %lu\n",Sym_t->st_value);		
+		printf("size	: %lu\n",Sym_t->st_size);		
+	
+		free(Sym_t);
+	}
+
 	return 0;
 }

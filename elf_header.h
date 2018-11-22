@@ -87,6 +87,6 @@ typedef struct {
 	unsigned short		e_shnum;		// 2
 	unsigned short		e_shstrndx;		// 2
 
-}Elf32_Ehdr;
+}Elf64_Ehdr;
 
 #endif

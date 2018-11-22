@@ -25,7 +25,7 @@ typedef struct{
 	unsigned long	p_memsz;	// 8
 	unsigned long	p_align;	// 8
 
-}Elf32_Phdr;
+}Elf64_Phdr;
 
 
 

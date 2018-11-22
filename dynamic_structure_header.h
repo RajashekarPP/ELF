@@ -41,6 +41,6 @@ typedef struct{
 		unsigned int d_val;
 		unsigned long long int 	d_ptr;
 	}d_un;
-}Elf32_Dyn;
+}Elf64_Dyn;
 
 #endif

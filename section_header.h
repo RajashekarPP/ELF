@@ -47,7 +47,7 @@ typedef struct{
 	unsigned int	sh_info;	//4
 	unsigned long	sh_addralign;	//8
 	unsigned long	sh_entsize;	//8
-}Elf32_Shdr;
+}Elf64_Shdr;
 
 
 #endif
