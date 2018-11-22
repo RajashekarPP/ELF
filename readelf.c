@@ -40,7 +40,7 @@ int main(int argc , char **argv)
 		return -1;
 	}
 
-	lseek(fd,0,SEEK_SET);
+//	lseek(fd,0,SEEK_SET);
 
 	printf("%s :\n",__FILE__);	
 	printf("ELF Header:\n");
@@ -178,22 +178,18 @@ int main(int argc , char **argv)
 	}
 
 	printf("  Name\t\t    Type\t\tAddress\t\tOffset\t");
-	printf("  Size\tEntSize\tFlags\tLink\n\n");
+	printf("Size\tEntSize\tFlags\tLink\n");
 
 	for(i=0;i<Elf_header.e_shnum ;i++)
 	{
 		char p[100];
-		if(lseek(fd,Shdr[index_str_t].sh_offset,SEEK_SET) != Shdr[index_str_t].sh_offset)
+		if((lseek(fd,Shdr[index_str_t].sh_offset,SEEK_SET)) != Shdr[index_str_t].sh_offset)
 		{
-			//perror("lseek ");return -1;
+			perror("lseek ");return -1;
 		}
-		if(lseek(fd,Shdr[i].sh_name,SEEK_CUR) != Shdr[i].sh_name )
-		{
-			//perror("lseek ");return -1;
-		}
+		lseek(fd,Shdr[i].sh_name,SEEK_CUR);
 		read(fd,p,100);
 		printf("%-20s",p);
-		//printf("  \t\t");
 		switch(Shdr[i].sh_type)
 		{	
 			case SHT_NULL 		: printf("NULL\t\t");break;
@@ -224,7 +220,7 @@ int main(int argc , char **argv)
 			printf("\t");
 		}
 		printf("0x%lx\t",Shdr[i].sh_offset);
-		printf("  0x%lx\t",Shdr[i].sh_size);
+		printf("0x%lx\t",Shdr[i].sh_size);
 		printf("  %-3lu\t",Shdr[i].sh_entsize);	
 		printf("  ");
 		switch(Shdr[i].sh_flags)
@@ -245,7 +241,7 @@ int main(int argc , char **argv)
 		printf("  %u\n",Shdr[i].sh_link);
 	}
 
-	puts("Printing the Dynamic Section details");	
+	puts("\nPrinting the Dynamic Section details");	
 
 	if(lseek(fd,Shdr[index_dynamic_section].sh_offset,SEEK_SET) != Shdr[index_dynamic_section].sh_offset )
 	{
@@ -254,62 +250,65 @@ int main(int argc , char **argv)
 
 	//Variable to read the dynamic section structures	
 	Elf32_Dyn *D = NULL;
+
+//	printf("sizeof struct *** %u ***\n",sizeof(*D));
 	// this array of structures end with d_val == DT_NULL
 
-	printf("  Tag\tType\t\tName/Value\n");
+	printf("  Tag\tType\t\t\tName/Value\n");
 	while(1)
 	{		
-		D = (Elf32_Dyn *)malloc(sizeof(D));
+		D = (Elf32_Dyn *)malloc(sizeof(*D));
 		if(D == NULL)
 		{
 			perror("malloc ");return -1;
 		}
-		if(read(fd,D,sizeof(D)) != sizeof(D) )		
+		if(read(fd,D,sizeof(*D)) != sizeof(*D) )		
 		{
 			perror("read ");return -1;	
-		}	
-		printf("0x%x\t",D->d_tag);
+		}
+	//	printf("#### %ld ###\n",lseek(fd,0,SEEK_CUR));	
+		printf("0x%lx\t",D->d_tag);
 		switch(D->d_tag)
 		{
 			case DT_NULL	:printf("NULL\t");puts("");return 0;
-			case DT_NEEDED	:printf("NEEDED\t");break;
-			case DT_PLTRELSZ:printf("PLTRELSZ");break;
-			case DT_PLTGOT	:printf("PLTGOT\t");break;
-			case DT_HASH	:printf("HASH\t");break;
-			case DT_STRTAB	:printf("STRTAB\t");break;
-			case DT_SYMTAB	:printf("SYMTAB\t");break;
-			case DT_RELA	:printf("RELA\t");break;
-			case DT_RELASZ	:printf("RELASZ\t");break;
-			case DT_RELAENT	:printf("RELAENT\t");break;
-			case DT_STRSZ	:printf("STRSZ\t");break;
-			case DT_SYMENT	:printf("SYMENT\t");break;
-			case DT_INIT	:printf("INIT\t");break;
-			case DT_FINI	:printf("FINI\t");break;
-			case DT_SONAME	:printf("SONAME\t");break;
-			case DT_RPATH	:printf("RPATH\t");break;
+			case DT_NEEDED	:printf("NEEDED\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_PLTRELSZ:printf("PLTRELSZ");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_PLTGOT	:printf("PLTGOT\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_HASH	:printf("HASH\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_STRTAB	:printf("STRTAB\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_SYMTAB	:printf("SYMTAB\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_RELA	:printf("RELA\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_RELASZ	:printf("RELASZ\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_RELAENT	:printf("RELAENT\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_STRSZ	:printf("STRSZ\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_SYMENT	:printf("SYMENT\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_INIT	:printf("INIT\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_FINI	:printf("FINI\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_SONAME	:printf("SONAME\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_RPATH	:printf("RPATH\t");printf("\t\t%u",D->d_un.d_val);break;
 			case DT_SYMBOLIC:printf("SYMBOLIC\t");break;
-			case DT_REL	:printf("REL\t");break;
-			case DT_RELSZ	:printf("RELSZ\t");break;
-			case DT_RELENT	:printf("RELENT\t");break;
-			case DT_PLTREL	:printf("PLTREL\t");break;
-			case DT_DEBUG	:printf("DEBUG\t");break;
+			case DT_REL	:printf("REL\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_RELSZ	:printf("RELSZ\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_RELENT	:printf("RELENT\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_PLTREL	:printf("PLTREL\t");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_DEBUG	:printf("DEBUG\t");printf("\t\t0x%llx",D->d_un.d_ptr);break;
 			case DT_TEXTREL	:printf("TEXTREL\t");break;
-			case DT_JMPREL	:printf("JMPREL\t");break;
-			case DT_INIT_ARRAY:printf("INIT_ARRAY");break;
-			case DT_INIT_ARRAYSZ:printf("INIIT_ARRAYSZ");break;
-			case DT_FINI_ARRAY:printf("FINI_ARRAY");break;
-			case DT_FINI_ARRAYSZ:printf("FINI_ARRAYSZ");break;
+			case DT_JMPREL	:printf("JMPREL\t");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_INIT_ARRAY:printf("INIT_ARRAY");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_INIT_ARRAYSZ:printf("INIIT_ARRAYSZ");printf("\t\t%u",D->d_un.d_val);break;
+			case DT_FINI_ARRAY:printf("FINI_ARRAY");printf("\t\t%llx",D->d_un.d_ptr);break;
+			case DT_FINI_ARRAYSZ:printf("FINI_ARRAYSZ");printf("\t\t%u",D->d_un.d_val);break;
 		//	case DT_GNU_HASH:printf("GNU_HASH");break;
 		//	case DT_VERNEED	:printf("VERNEED");break;
 		//	case DT_VERNEEDNUM:printf("VERNEEDUM");break;
 		//	case DT_VERSYM	:printf("VERSYM");break;
-			//default :printf("0x%x",D->d_tag);break;
-		}
+		//	default :printf("0x%x",D->d_tag);break;
 
-//		printf("\t\t%x",D->d_un.d_val);
-		printf("\t\t%lx",D->d_un.d_ptr);
+		}
+	//	printf("\t\t%x",D->d_un.d_val);
+	//	printf("\t\t%llx",D->d_un.d_ptr);
+	//	printf("*** %ld ***",lseek(fd,2,SEEK_CUR));
 		puts("");
-		lseek(fd,sizeof(D),SEEK_CUR);
 		free(D);
 	}
 	return 0;
