@@ -36,9 +36,9 @@
 #define DT_VERSYM	0x6ffffff0
 
 typedef struct{
-	signed long long int d_tag;
+	signed long int d_tag;
 	union{
-		unsigned long int	d_val;
+		unsigned int d_val;
 		unsigned long long int 	d_ptr;
 	}d_un;
 }Elf32_Dyn;
