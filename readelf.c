@@ -18,7 +18,7 @@ int main(int argc , char **argv)
 	Elf64_Ehdr Elf_header;
 	Elf64_Shdr *Shdr = NULL;
 	int fd;			// file descriptor to read the binary/executable/linkable file
-	unsigned short int index_str_t=0 , index_symbol_table=0 , offset=0;
+	unsigned short int index_str_t=0 , index_symbol_table=0;
 
 	if(argc < 1)
 	{
@@ -199,7 +199,7 @@ int main(int argc , char **argv)
 			case SHT_NULL 		: printf("NULL\t\t");break;
 			case SHT_PROGBITS	: printf("PROGBITS\t\t");break;
 			case SHT_SYMTAB 	: printf("SYMTAB\t\t"); index_symbol_table = i ;break;
-			case SHT_STRTAB		: printf("STRTAB\t\t");offset=Shdr[i].sh_offset; break; 
+			case SHT_STRTAB		: printf("STRTAB\t\t");break; 
 			case SHT_RELA 		: printf("RELA\t\t");break;
 			case SHT_HASH		: printf("GNU_HASH\t");break;
 			case SHT_DYNAMIC	: printf("DYNAMIC\t\t"); index_dynamic_section=i ;break;
