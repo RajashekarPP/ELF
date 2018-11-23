@@ -326,7 +326,7 @@ loop :
 
 	//printf("offset = %d\n",offset);
 //	printf("** %ld **\n",lseek(fd,0,1));
-	//printf("%ld\n",lseek(fd,16568,0));
+	printf("%ld\n",lseek(fd,12,SEEK_SET));
 //	printf("** %ld **\n",lseek(fd,19109,0));
 	for(i=0;i<10;i++)
 	{
@@ -346,6 +346,7 @@ loop :
 		printf("size	: %lu\n",Sym_t->st_size);		
 	
 		free(Sym_t);
+		Sym_t = NULL;
 	}
 
 	return 0;

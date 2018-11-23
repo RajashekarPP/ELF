@@ -2,7 +2,6 @@
 #include"section_header.h"
 #include"symbol_table_header.h"
 #include"program_header.h"
-#include"datatypes.h"
 
 #include<stdio.h>
 #include<stdlib.h>
