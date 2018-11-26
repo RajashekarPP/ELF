@@ -108,7 +108,7 @@ int main(int argc , char **argv)
 	printf("Section Header string table index		:  %u\n",Elf_header.e_shstrndx);
 	
 	index_str_t = Elf_header.e_shstrndx;
-
+/////////////////////////////////////////////////////////////////////////////////////////////
 	Elf64_Phdr *Phdr = NULL;
 	Phdr = (Elf64_Phdr *)malloc(sizeof(Elf64_Phdr)*Elf_header.e_phnum);
 	lseek(fd,Elf_header.e_phoff,SEEK_SET);
@@ -156,8 +156,10 @@ int main(int argc , char **argv)
 		}
 		puts("");
 	}
-
 	puts("");
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
 	printf("Section Headers:\n");
 	if(lseek(fd,Elf_header.e_shoff,SEEK_SET) != Elf_header.e_shoff)
 	{
@@ -189,8 +191,8 @@ int main(int argc , char **argv)
 		{
 			perror("lseek ");return -1;
 		}
+
 		lseek(fd,Shdr[i].sh_name,SEEK_CUR);
-	//	printf("* %ld *",lseek(fd,0,SEEK_CUR));
 		read(fd,p,100);
 		printf("%-20s",p);
 		
@@ -245,6 +247,8 @@ int main(int argc , char **argv)
 		printf("  %u\n",Shdr[i].sh_link);
 	}
 
+/////////////////////////////////////////////////////////////////////////////
+
 	puts("\nPrinting the Dynamic Section details");	
 
 	if(lseek(fd,Shdr[index_dynamic_section].sh_offset,SEEK_SET) != Shdr[index_dynamic_section].sh_offset )
@@ -254,7 +258,7 @@ int main(int argc , char **argv)
 
 	//Variable to read the dynamic section structures	
 	Elf64_Dyn *D = NULL;
-		//printf("#### %ld ###\n",lseek(fd,0,SEEK_CUR));	
+
 	// this array of structures end with d_val == DT_NULL
 	printf(" Tag\t\t\tType\t\t\tName/Value\n");
 	while(1)
@@ -268,7 +272,7 @@ int main(int argc , char **argv)
 		{
 			perror("read ");return -1;	
 		}
-	//	printf("#### %ld ###\n",lseek(fd,0,SEEK_CUR));	
+
 		printf("0x%-10lx\t\t",D->d_tag);
 		switch(D->d_tag)
 		{
@@ -307,46 +311,69 @@ int main(int argc , char **argv)
 		//	default 		:printf("0x%x",D->d_tag);break;
 
 		}
-	//	printf("\t\t%x",D->d_un.d_val);
-	//	printf("\t\t%llx",D->d_un.d_ptr);
-	//	printf("*** %ld ***",lseek(fd,2,SEEK_CUR));
+
 		puts("");
 		free(D);
 	}
 
-loop :
-	printf("  **** %d %d\n",index_symbol_table,index_dynamic_section);
-	printf("printing symbol table \n");
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+loop:
+	printf("\nprinting symbol table \n");
 	if(lseek(fd,Shdr[index_symbol_table].sh_offset,SEEK_SET) != Shdr[index_symbol_table].sh_offset )
 	{
 		perror("lseek ");return -1;
 	}
 
-	Elf64_Sym *Sym_t = NULL;
-
-	//printf("offset = %d\n",offset);
-//	printf("** %ld **\n",lseek(fd,0,1));
-	printf("%ld\n",lseek(fd,12,SEEK_SET));
-//	printf("** %ld **\n",lseek(fd,19109,0));
-	for(i=0;i<10;i++)
-	{
-		Sym_t = (Elf64_Sym *)malloc(sizeof(*Sym_t));
-		if(Sym_t = NULL)
-		{
-			perror("malloc ");return -1;
-		}
-
-		if(read(fd,Sym_t,sizeof(Elf64_Sym)) != sizeof(Elf64_Sym))
+	Elf64_Sym Sym_t[76];
+	if(read(fd,Sym_t,sizeof(Sym_t)) != sizeof(Sym_t))
 		{
 			perror("read ");return -1;
 		}
-		printf("info 	: %c\n",Sym_t->st_info);
-		printf("other	: %c\n",Sym_t->st_other);
-		printf("value	: %lu\n",Sym_t->st_value);		
-		printf("size	: %lu\n",Sym_t->st_size);		
+
+	printf("  Value\tsize\tType\tBind\tNdx\tName\n");	
 	
-		free(Sym_t);
-		Sym_t = NULL;
+	for(i=0;i<76;i++)
+	{
+		char p[100];
+		printf(" %lx\t",Sym_t[i].st_value);		
+		printf("  %lu\t",Sym_t[i].st_size);	
+		
+		switch(ELF32_ST_TYPE(Sym_t[i].st_info))
+		{
+			case STT_NOTYPE :printf("NOTYPE\t");break;
+			case STT_OBJECT	:printf("OBJECT\t");break;
+			case STT_FUN	:printf("FUNC\t");break;
+			case STT_SECTION:printf("SECTION\t");break;
+			case STT_FILE	:printf("FILE\t");break;
+			case STT_COMMON	:printf("COMMON\t");break;
+			case STT_TLS	:printf("TLS\t");break;
+			case STT_LOOS	:printf("LOOS\t");break;
+			case STT_HIOS	:printf("HIOOS\t");break;
+			case STT_SPARC_REGISTER	:printf("SPARC\t");break;
+			case STT_LOPROC	:printf("LOPROC");break;
+			case STT_HIPROC	:printf("HIPROC");break;
+			default : printf("%x\t",Sym_t[i].st_name);break;
+		}
+		
+		switch(ELF32_ST_BIND(Sym_t[i].st_info))
+		{
+			case 0:printf("LOCAL\t");break;
+			case 1:printf("GLOBAL\t");break;
+			case 2:printf("WEAK\t");break;
+		}
+		switch(Sym_t[i].st_shndx)
+		{
+			case STN_UNDEF	:printf("UND\t");break;
+			case STN_ABS	:printf("ABS\t");break;
+			default:	printf("%u\t",Sym_t[i].st_shndx);break;
+		}
+
+		lseek(fd,Shdr[30].sh_offset,SEEK_SET);
+		lseek(fd,Sym_t[i].st_name,SEEK_CUR);
+		read(fd,p,100);
+		printf("%s",p);
+
+	puts("");
 	}
 
 	return 0;
