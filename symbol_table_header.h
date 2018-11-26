@@ -5,7 +5,7 @@
 #define ELF32_ST_TYPE(i) 	((i)&0xf)
 #define ELF32_ST_INFO(b,t) 	(((b)<<4)+((t)&0xf))
 
-//st_type
+//st_info
 #define STT_NOTYPE		0
 #define STT_OBJECT		1
 #define STT_FUN			2
@@ -19,10 +19,14 @@
 #define STT_LOPROC		13
 #define STT_HIPROC		15
 
+//Binding of symbol
 #define STB_LOCAL		0
 #define STB_GLOBAL		1
 #define STB_WEAK		2
 
+//Shndx
+#define STN_UNDEF	0
+#define	STN_ABS	 	65521
 
 typedef struct{
 
