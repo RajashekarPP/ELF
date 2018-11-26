@@ -18,7 +18,7 @@ int main(int argc , char **argv)
 	Elf64_Ehdr Elf_header;
 	Elf64_Shdr *Shdr = NULL;
 	int fd;			// file descriptor to read the binary/executable/linkable file
-	unsigned short int index_str_t=0 , index_symbol_table=0;
+	unsigned short int index_str_t=0 , index_symbol_table=0,index_string_t=0;
 
 	if(argc < 1)
 	{
@@ -201,7 +201,7 @@ int main(int argc , char **argv)
 			case SHT_NULL 		: printf("NULL\t\t");break;
 			case SHT_PROGBITS	: printf("PROGBITS\t\t");break;
 			case SHT_SYMTAB 	: printf("SYMTAB\t\t"); index_symbol_table = i ;break;
-			case SHT_STRTAB		: printf("STRTAB\t\t");break; 
+			case SHT_STRTAB		: printf("STRTAB\t\t");index_string_t = i; break; 
 			case SHT_RELA 		: printf("RELA\t\t");break;
 			case SHT_HASH		: printf("GNU_HASH\t");break;
 			case SHT_DYNAMIC	: printf("DYNAMIC\t\t"); index_dynamic_section=i ;break;
@@ -231,16 +231,16 @@ int main(int argc , char **argv)
 		printf("  ");
 		switch(Shdr[i].sh_flags)
 		{
-			case 1:printf("W");break;
-			case 2:printf("A");break;
-			case 3:printf("WA");break;
-			case 4:printf("X");break;
-			case 6:printf("AX");break;
-			case 0x10:printf("M");break;
-			case 0x20:printf("S");break;
-			case 0x30:printf("MS");break;
-			case 0x40:printf("I");break;
-			case 0x42:printf("AI");break;
+			case SHF_WRITE	:printf("W");break;
+			case SHF_ALLOC	:printf("A");break;
+			case 3		:printf("WA");break;
+			case SHF_EXECINSTR:printf("X");break;
+			case 6		:printf("AX");break;
+			case SHF_MERGE	:printf("M");break;
+			case SHF_STRINGS:printf("S");break;
+			case 0x30	:printf("MS");break;
+			case SHF_INFO_LINK:printf("I");break;
+			case 0x42	:printf("AI");break;
 		//default : printf("%lu",Shdr[i].sh_flags);break;
 		}
 		printf("\t");
@@ -324,7 +324,7 @@ loop:
 		perror("lseek ");return -1;
 	}
 
-	Elf64_Sym Sym_t[76];
+	Elf64_Sym Sym_t[80];
 	if(read(fd,Sym_t,sizeof(Sym_t)) != sizeof(Sym_t))
 		{
 			perror("read ");return -1;
@@ -332,7 +332,7 @@ loop:
 
 	printf("  Value\tsize\tType\tBind\tNdx\tName\n");	
 	
-	for(i=0;i<76;i++)
+	for(i=0;;i++)
 	{
 		char p[100];
 		printf(" %lx\t",Sym_t[i].st_value);		
@@ -368,13 +368,18 @@ loop:
 			default:	printf("%u\t",Sym_t[i].st_shndx);break;
 		}
 
-		lseek(fd,Shdr[30].sh_offset,SEEK_SET);
+		lseek(fd,Shdr[index_string_t].sh_offset,SEEK_SET);
 		lseek(fd,Sym_t[i].st_name,SEEK_CUR);
 		read(fd,p,100);
-		printf("%s",p);
+		printf("%s\n",p);
 
-	puts("");
+		if(strncmp(p+1,"init",4) == 0)
+		{
+			return 0;
+		}	
+
 	}
 
+	printf("Init function has not been found\n");
 	return 0;
 }
