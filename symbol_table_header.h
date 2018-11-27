@@ -9,11 +9,11 @@
 //st_info
 #define STT_NOTYPE		0
 #define STT_OBJECT		1
-#define STT_FUN			2
+#define STT_FUN 		2
 #define STT_SECTION		3
 #define STT_FILE		4
 #define STT_COMMON		5
-#define STT_TLS			6
+#define STT_TLS 		6
 #define STT_LOOS		10
 #define STT_HIOS		12
 #define STT_SPARC_REGISTER	14
@@ -27,7 +27,7 @@
 
 //Shndx
 #define STN_UNDEF		0
-#define	STN_ABS	 		65521
+#define STN_ABS	 		65521
 
 typedef struct{
 

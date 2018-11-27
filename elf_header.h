@@ -2,20 +2,20 @@
 #define __ELF_HEADER__
 
 // for e_type
-#define ET_NONE		0
-#define ET_REL 		1  	//Relocatable file
-#define ET_EXEC		2 	//Executable file
-#define ET_DYN 		3 	//Shared object file
+#define ET_NONE 	0
+#define ET_REL  	1  	//Relocatable file
+#define ET_EXEC  	2 	//Executable file
+#define ET_DYN  	3 	//Shared object file
 #define ET_CORE 	4 	//Core file
-#define ET_LOPROC  	0xff00  //Processor-specific
-#define ET_HIPROC  	0xffff  //Processor-specific
+#define ET_LOPROC	0xff00  //Processor-specific
+#define ET_HIPROC	0xffff  //Processor-specific
 
 //for e_machine
 #define EM_NONE 	0 	// No machine 
-#define EM_M32 		1 	// AT&T WE 32100 
+#define EM_M32  	1 	// AT&T WE 32100 
 #define EM_SPARC 	2 	// SPARC
-#define EM_386 		3 	// Intel 80386
-#define EM_68K 		4 	// Motorola 68000 
+#define EM_386  	3 	// Intel 80386
+#define EM_68K  	4 	// Motorola 68000 
 #define EM_88K  	5	// Motorola 88000
 #define EM_860 MIPS 	7 	// Intel 80860
 #define EM_MIPS 	8 	// RS3000
@@ -30,7 +30,7 @@
 #define EI_MAG2 	2	//File identification
 #define EI_MAG3 	3	//File identification
 #define EI_CLASS	4	//File Class
-#define EI_DATA		5	//Data Encoding
+#define EI_DATA 	5	//Data Encoding
 #define EI_VERSION	6	//File Version
 #define EI_OSABI	7	//type of os platform
 #define EI_ABIVERSION	8	//kernel 2.6 after is invalid byte lesser versions define the ABI version

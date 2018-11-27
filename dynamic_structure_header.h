@@ -27,10 +27,10 @@
 #define DT_TEXTREL	22			
 #define DT_JMPREL	23			
 #define DT_INIT_ARRAY	0x19
-#define DT_INIT_ARRAYSZ	0x1b
+#define DT_INIT_ARRAYSZ 0x1b
 #define DT_FINI_ARRAY	0x1a
-#define	DT_FINI_ARRAYSZ	0x1c
-#define	DT_GNU_HASH	0x6ffffef5
+#define DT_FINI_ARRAYSZ	0x1c
+#define DT_GNU_HASH	0x6ffffef5
 #define DT_VERNEED	0x6ffffffe
 #define DT_VERNEEDNUM	0x6fffffff
 #define DT_VERSYM	0x6ffffff0
