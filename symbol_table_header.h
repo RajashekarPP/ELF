@@ -26,8 +26,8 @@
 #define STB_WEAK		2
 
 //Shndx
-#define STN_UNDEF	0
-#define	STN_ABS	 	65521
+#define STN_UNDEF		0
+#define	STN_ABS	 		65521
 
 typedef struct{
 

@@ -33,6 +33,7 @@
 #define EI_DATA		5	//Data Encoding
 #define EI_VERSION	6	//File Version
 #define EI_OSABI	7	//type of os platform
+#define EI_ABIVERSION	8	//kernel 2.6 after is invalid byte lesser versions define the ABI version
 #define EI_PAD		9	//start of padding bytes
 #define EI_NIDENT 	16	//size of e_ident[]
 
@@ -48,27 +49,6 @@
 #define ELFDATANONE 	0	//Invalid data encoding
 #define ELFDATA2LSB	1	
 #define ELFDATA2MSB	2
-
-#if 0
-typedef struct {
-
-	unsigned char	e_ident[EI_NIDENT]; 	// 16
-	Elf32_Half	e_type;			// 2
-	Elf32_Half	e_machine;		// 2
-	Elf32_Word	e_version;		// 4
-	Elf32_Addr	e_entry;		// 8
-	Elf32_Off	e_phoff;		// 8
-	Elf32_Off	e_shoff;		// 8
-	Elf32_Sword	e_flags;		// 4	
-	Elf32_Half	e_ehsize;		// 2
-	Elf32_Half	e_phentsize;		// 2
-	Elf32_Half	e_phnum;		// 2 
-	Elf32_Half	e_shentsize;		// 2
-	Elf32_Half	e_shnum;		// 2
-	Elf32_Half	e_shstrndx;		// 2
-
-}Elf32_Ehdr;
-#endif
 
 typedef struct {
 

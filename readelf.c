@@ -309,9 +309,7 @@ int main(int argc , char **argv)
 			case 0x6fffffff		:printf("VERNEEDUM");printf("\t\t%u",D->d_un.d_val);break;
 			case 0x6ffffff0		:printf("VERSYM");printf("\t\t\t%llx",D->d_un.d_ptr);break;
 		//	default 		:printf("0x%x",D->d_tag);break;
-
 		}
-
 		puts("");
 		free(D);
 	}
@@ -324,19 +322,20 @@ loop:
 		perror("lseek ");return -1;
 	}
 
-	Elf64_Sym Sym_t[80];
-	if(read(fd,Sym_t,sizeof(Sym_t)) != sizeof(Sym_t))
+	Elf64_Sym Sym_t[100];
+	if(read(fd,Sym_t,sizeof(Sym_t)) < 0)
 		{
 			perror("read ");return -1;
 		}
 
-	printf("  Value\tsize\tType\tBind\tNdx\tName\n");	
+	printf("     Value\tsize\tType\tBind\tNdx\tName\n");	
 	
 	for(i=0;;i++)
 	{
 		char p[100];
-		printf(" %lx\t",Sym_t[i].st_value);		
-		printf("  %lu\t",Sym_t[i].st_size);	
+		printf("%2d: ",i);
+		printf(" %-8lx",Sym_t[i].st_value);		
+		printf("  %-8lu",Sym_t[i].st_size);	
 		
 		switch(ELF32_ST_TYPE(Sym_t[i].st_info))
 		{
@@ -380,6 +379,6 @@ loop:
 
 	}
 
-	printf("Init function has not been found\n");
+	//printf("Init function has not been found\n");
 	return 0;
 }

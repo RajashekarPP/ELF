@@ -19,7 +19,7 @@
 #define SHT_PREINIT_ARRAY	0x10
 #define SHT_GROUP		0x11
 #define SHT_SYMTAB_SHNDX	0x12
-#define SHT_NUM			0x13	
+#define SHT_NUM			0x13
 #define SHT_LOOS		0x60000000
 #define SHT_LOPROC 		0x70000000
 #define SHT_HIPROC 		0x7fffffff
